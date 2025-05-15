@@ -1,6 +1,7 @@
 // image-tag-server.ts
 import express from 'express'
 import fs from 'fs'
+import os from 'os';
 import path, {dirname} from 'path'
 import bodyParser from 'body-parser'
 import {fileURLToPath} from 'url'
@@ -12,13 +13,9 @@ const app = express()
 
 const config: Config = JSON.parse(fs.existsSync('./config.json') ? fs.readFileSync('./config.json', 'utf-8') : '{}');
 
-const imageDir = path.isAbsolute(config.imageFolderPath)
-    ? config.imageFolderPath
-    : path.join(__dirname, config.imageFolderPath);
+const imageDir = resolvePath(config.imageFolderPath);
 
-const configDir = path.isAbsolute(config.tagConfigOutputPath)
-    ? config.tagConfigOutputPath
-    : path.join(__dirname, config.tagConfigOutputPath);
+const configDir = resolvePath(config.tagConfigOutputPath);
 
 if (!fs.existsSync(configDir)) fs.mkdirSync(configDir)
 
@@ -532,6 +529,31 @@ function tokenAuthorized(folder: string, token: any){
     return expectedTokens?.[token];
 }
 
+
+function expandPath(p: string): string {
+    // 展开 ~ 为 home 目录
+    if (p.startsWith('~')) {
+        p = path.join(os.homedir(), p.slice(1));
+    }
+
+    // 展开 %VAR% (Windows)
+    p = p.replace(/%([^%]+)%/g, (_, name) => process.env[name] || `%${name}%`);
+
+    // 展开 $VAR (Unix)
+    p = p.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (_, name) => process.env[name] || `$${name}`);
+
+    return p;
+}
+
+/**
+ * 获取绝对路径（自动展开环境变量和相对路径）
+ */
+function resolvePath(inputPath: string): string {
+    const expanded = expandPath(inputPath);
+    return path.isAbsolute(expanded)
+        ? expanded
+        : path.resolve(__dirname, expanded);
+}
 
 
 

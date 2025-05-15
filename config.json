@@ -1,8 +1,8 @@
 {
   "ip": "127.0.0.1",
   "port": 3567,
-  "imageFolderPath": "./images",
-  "tagConfigOutputPath": "./tagConfig",
+  "imageFolderPath": "%AppData%\\Koishi\\Desktop\\data\\instances\\default\\data\\starfx-bot\\assets\\record",
+  "tagConfigOutputPath": "%AppData%\\Koishi\\Desktop\\data\\instances\\default\\data\\starfx-bot\\assets\\tagConfig",
   "tokens": {
     "admin": {
       "starfx": "starfx"
