@@ -4,12 +4,8 @@
   "imageFolderPath": "./images",
   "tagConfigOutputPath": "./tagConfig",
   "tokens": {
-    "onebot_999888777": {
-      "114514": "user01",
-      "114515": "user02"
-    },
     "admin": {
-      "114514": "admin~"
+      "starfx": "starfx"
     }
   }
 }

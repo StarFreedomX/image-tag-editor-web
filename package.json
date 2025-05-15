@@ -4,8 +4,11 @@
   "description": "",
   "type": "module",
   "main": "src/index.ts",
-
   "private": false,
+  "files": [
+    "lib",
+    "dist"
+  ],
   "dependencies": {
     "body-parser": "^2.2.0",
     "express": "^5.1.0"
