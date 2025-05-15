@@ -359,7 +359,7 @@ app.get('/:folder', (req, res) => {
             const currentTags = tags[key] || []
             html += `
       <div class="img-block" id="img-${folder}-${key}">
-        <img src="${filePath}?token=${token}" loading="lazy" onclick="openModal('${filePath}', '${folder}', '${key}')" alt = ${folder}-${key}/>
+        <img src="${filePath}?token=${token}" loading="lazy" onclick="openModal('${filePath}?token=${token}', '${folder}', '${key}')" alt = ${folder}-${key}/>
         <div class="tags" id="tags-${folder}-${key}">
           ${currentTags.map(tag => `<span class="tag" onclick="deleteTag('${folder}', '${key}', '${tag}')">${tag} ✕</span>`).join('')}
         </div>
