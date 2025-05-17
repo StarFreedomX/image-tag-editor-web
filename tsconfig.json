@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib",
-    "target": "es2022",
+    "outDir": "./lib",
+    "target": "esnext",
     "module": "esnext",
     "declaration": true,
     "emitDeclarationOnly": false,
@@ -10,12 +10,19 @@
     "incremental": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "types": [
       "node",
-    ]
+    ],
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
-    "src/**/*"
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
   ]
 }

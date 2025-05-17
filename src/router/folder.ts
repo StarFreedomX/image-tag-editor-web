@@ -1,99 +1,21 @@
-// image-tag-server.ts
-import express from 'express';
-import fs from 'fs';
-import os from 'os';
-import path, { dirname } from 'path';
-import bodyParser from 'body-parser';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const app = express();
-const config = JSON.parse(fs.existsSync('./config.json') ? fs.readFileSync('./config.json', 'utf-8') : '{}');
-const imageDir = resolvePath(config.imageFolderPath);
-const configDir = resolvePath(config.tagConfigOutputPath);
-if (!fs.existsSync(configDir))
-    fs.mkdirSync(configDir);
-app.use(bodyParser.json());
-// app.use('/images', express.static(imageDir))
-app.get('/images/:folder/:filename', (req, res) => {
-    const { folder, filename } = req.params;
-    const token = req.query.token;
-    const valid = tokenAuthorized(folder, token);
-    if (!valid) {
-        return res.status(403).send('Forbidden');
-    }
-    //console.log(`[ACCESS] ${new Date().toISOString()} - ${username} accessed /images/${folder}/${filename}`);
-    const imagePath = path.join(imageDir, folder, filename);
-    if (!fs.existsSync(imagePath)) {
-        return res.status(404).send('Not Found');
-    }
-    res.sendFile(imagePath);
-});
-app.get('/', (req, res) => {
-    const folders = fs.readdirSync(imageDir).filter(f => fs.statSync(path.join(imageDir, f)).isDirectory());
-    let html = `
-  <html lang="zh">
-    <head>
-      <title>语录导航</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          background-color: #121212;
-          color: #eee;
-          font-family: sans-serif;
-          padding: 40px 20px;
-          max-width: 600px;
-          margin: auto;
-          text-align: center;
-        }
-        h1 {
-          font-size: 2em;
-          margin-bottom: 30px;
-        }
-        ul {
-          list-style: none;
-          padding: 0;
-        }
-        li {
-          margin: 15px 0;
-        }
-        a {
-          text-decoration: none;
-          color: #80cbc4;
-          font-size: 1.2em;
-          border: 1px solid #333;
-          border-radius: 8px;
-          padding: 10px 20px;
-          display: inline-block;
-          transition: background 0.2s;
-        }
-        a:hover {
-          background-color: #1e1e1e;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>语录导航</h1>
-      <ul>
-        ${folders.map(folder => `<li><a href="/${folder}">${folder}</a></li>`).join('')}
-      </ul>
-    </body>
-  </html>
-  `;
-    res.send(html);
-});
+
 // 获取图片和对应 tags
-app.get('/:folder', (req, res) => {
+import path from "path";
+import fs from "fs";
+import {configDir, imageDir} from "@/app";
+import {tokenAuthorized} from "@/authorizeMiddleware";
+import express from "express";
+const router = express.Router();
+router.get('/:folder', (req, res) => {
     const { folder } = req.params;
-    const folderPath = path.join(imageDir, folder);
-    const tagPath = path.join(configDir, `${folder}.json`);
+    const folderPath = path.join(imageDir, folder)
+    const tagPath = path.join(configDir, `${folder}.json`)
     //const folders = fs.readdirSync(imageDir).filter(f => fs.statSync(path.join(imageDir, f)).isDirectory() && f == folder)
-    if (!fs.existsSync(folderPath)) {
-        return res.status(404).send('No folder found.');
-    }
+    console.log('folder path:', folderPath);
+    if (!fs.existsSync(folderPath)) {return res.status(404).send('No folder found.')}
     const token = req.query.token;
     const valid = tokenAuthorized(folder, token);
+
     // HTML 页面初始部分
     let htmlinit = `
     <html lang="zh">
@@ -125,6 +47,7 @@ app.get('/:folder', (req, res) => {
     </head>
     <body>
   `;
+
     if (!token || !valid) {
         // 缺少或错误 token，返回空页面+提示输入
         const message = token ? 'Token 错误，请重新输入。' : '请输入访问 token：';
@@ -149,6 +72,7 @@ app.get('/:folder', (req, res) => {
     `;
         return res.send(htmlinit);
     }
+
     let html = `
   <html lang="zh">
   <head>
@@ -311,15 +235,19 @@ app.get('/:folder', (req, res) => {
        <div id="modal-tags" class="tags"></div>
      </div>
    </div>
-  `;
-    let tags = {};
-    if (fs.existsSync(tagPath))
-        tags = JSON.parse(fs.readFileSync(tagPath, 'utf-8'));
-    html += `<h2>${folder}</h2><div class="img-grid">`;
+  `
+
+
+
+    let tags: Record<string, string[]> = {}
+    if (fs.existsSync(tagPath)) tags = JSON.parse(fs.readFileSync(tagPath, 'utf-8'))
+
+    html += `<h2>${folder}</h2><div class="img-grid">`
+
     fs.readdirSync(folderPath).reverse().forEach(file => {
-        const filePath = `/images/${folder}/${file}`;
-        const key = path.parse(file).name;
-        const currentTags = tags[key] || [];
+        const filePath = `/images/${folder}/${file}`
+        const key = path.parse(file).name
+        const currentTags = tags[key] || []
         html += `
       <div class="img-block" id="img-${folder}-${key}">
         <img src="${filePath}?token=${token}" loading="lazy" onclick="openModal('${filePath}?token=${token}', '${folder}', '${key}')" alt = ${folder}-${key}/>
@@ -333,8 +261,9 @@ app.get('/:folder', (req, res) => {
           <button type="submit">添加标签</button>
         </form>
       </div>
-      `;
-    });
+      `
+    })
+
     html += `
 </div>
   <script>
@@ -422,87 +351,10 @@ app.get('/:folder', (req, res) => {
   </script>
   </body>
   </html>
-  `;
-    res.send(html);
-});
-// 添加 tag
-app.post('/tag', express.urlencoded({ extended: true }), (req, res) => {
-    const { folder, name, tags, token } = req.body;
-    //验证token
-    const valid = tokenAuthorized(folder, token);
-    if (!valid)
-        return res.status(403).send('Invalid token');
-    const configPath = path.join(configDir, `${folder}.json`);
-    let tagData = {};
-    if (fs.existsSync(configPath))
-        tagData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
-    if (!tagData[name])
-        tagData[name] = [];
-    tagData[name].push(...tagList);
-    tagData[name] = Array.from(new Set(tagData[name]));
-    fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2));
-    res.status(200).end();
-});
-// 删除 tag
-app.post('/delete-tag', express.json(), (req, res) => {
-    const { folder, name, tag, token } = req.body;
-    //验证token
-    const valid = tokenAuthorized(folder, token);
-    if (!valid)
-        return res.status(403).send('Invalid token');
-    //console.log(`[DELETE TAG] ${new Date().toISOString()} - ${valid} delete ${folder}-${name} tag: ${tag}`)
-    const configPath = path.join(configDir, `${folder}.json`);
-    if (!fs.existsSync(configPath))
-        return res.status(404).end();
-    const tagData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    if (tagData[name]) {
-        tagData[name] = tagData[name].filter(t => t !== tag);
-        fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2));
-    }
-    res.status(200).end();
-});
-app.get('/tags/:folder/:key', (req, res) => {
-    const { folder, key } = req.params;
-    //验证token
-    const token = req.query?.token;
-    const valid = tokenAuthorized(folder, token);
-    if (!valid)
-        return res.status(403).send('Invalid token');
-    const configPath = path.join(configDir, `${folder}.json`);
-    if (!fs.existsSync(configPath))
-        return res.status(404).send([]);
-    const tagData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    const tags = tagData[key] || [];
-    res.json(tags);
-});
-function tokenAuthorized(folder, token) {
-    const isAdmin = config?.tokens?.admin?.[token];
-    if (isAdmin)
-        return isAdmin;
-    const expectedTokens = config?.tokens?.[folder];
-    return expectedTokens?.[token];
-}
-function expandPath(p) {
-    // 展开 ~ 为 home 目录
-    if (p.startsWith('~')) {
-        p = path.join(os.homedir(), p.slice(1));
-    }
-    // 展开 %VAR% (Windows)
-    p = p.replace(/%([^%]+)%/g, (_, name) => process.env[name] || `%${name}%`);
-    // 展开 $VAR (Unix)
-    p = p.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (_, name) => process.env[name] || `$${name}`);
-    return p;
-}
-/**
- * 获取绝对路径（自动展开环境变量和相对路径）
- */
-function resolvePath(inputPath) {
-    const expanded = expandPath(inputPath);
-    return path.isAbsolute(expanded)
-        ? expanded
-        : path.resolve(__dirname, expanded);
-}
-app.listen(config.port || 3567, config.ip || '127.0.0.1', () => {
-    console.log(`✅ 本地图片标签服务已启动: http://localhost:${config.port}`);
-});
+  `
+
+    res.send(html)
+})
+
+
+export {router as folderRouter}

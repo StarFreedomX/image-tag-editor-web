@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "src/app.ts",
   "private": false,
   "files": [
     "lib",
@@ -14,14 +14,13 @@
     "express": "^5.1.0"
   },
   "scripts": {
-    "dev": " npx tsx src/index.ts",
-    "build": "tsc",
-    "start": "node lib/index.js"
+    "start": "npx tsx -r tsconfig-paths/register src/app.ts\n"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5"
   }
 }

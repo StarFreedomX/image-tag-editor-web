@@ -11,16 +11,10 @@ cd image-tag-editor-web
 #安装依赖
 npm install
 #进入config.json调整配置
-```
-方法1：直接运行项目ts
-```shell
-#可能会要求安装npx tsx等，跟随引导安装即可
-npm run dev
-```
-方法2：直接运行项目ts
-```shell
+#运行项目(可能会要求安装npx tsx等，跟随引导安装即可)
 npm start
 ```
+
 
 # config配置
 ```ts
