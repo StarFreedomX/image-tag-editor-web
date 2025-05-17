@@ -29,9 +29,8 @@ git pull
 export interface Config {
     ip: string,//监听的ip，127.0.0.1为本地访问，0.0.0.0为网络访问
     port: number,//监听的端口
-    //Windows默认填"%AppData%\Koishi\Desktop\data\instances\default\data\starfx-bot\assets\record"
+    //这两项Windows默认填config-example.json中的即可
     imageFolderPath: string,//图片目录，需要注意图片文件是在子文件夹中
-    //Windows默认填"%AppData%\Koishi\Desktop\data\instances\default\data\starfx-bot\assets\tagConfig"
     tagConfigOutputPath: string,//输出tag配置目录
     tokens: {
         /*
