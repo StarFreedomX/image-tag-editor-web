@@ -52,7 +52,7 @@ router.get('/', (req, res) => {
     <body>
       <h1>语录导航</h1>
       <ul>
-        ${folders.map(folder => `<li><a href="/${folder}">${folder}</a></li>`).join('')}
+        ${folders.map(folder => `<li><a href="/groups/${folder}">${folder}</a></li>`).join('')}
       </ul>
     </body>
   </html>

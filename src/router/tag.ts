@@ -9,7 +9,7 @@ const getRouter = express.Router();
 
 // 添加 tag
 addRouter.post('/', express.urlencoded({ extended: true }), authorizeMiddleware, (req, res) => {
-    const { folder, name, tags } = req.body as { folder: string, name: string, tags: string, token: any }
+    const { folder, name, tags, token } = req.body as { folder: string, name: string, tags: string, token: any }
     const configPath = path.join(configDir, `${folder}.json`)
     let tagData: Record<string, string[]> = {}
     if (fs.existsSync(configPath)) tagData = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
@@ -20,13 +20,13 @@ addRouter.post('/', express.urlencoded({ extended: true }), authorizeMiddleware,
     tagData[name] = Array.from(new Set(tagData[name]))
 
     fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2))
-    console.log(`add tag of ${folder}: ${tags}`)
+    console.log(`[ADD] add tag of ${folder} - ${name}: ${tags} IP: ${req.ip} token = ${token}`)
     res.status(200).end()
 })
 
 // 删除 tag
 delRouter.post('/', express.json(), authorizeMiddleware, (req, res) => {
-    const { folder, name, tag } = req.body as { folder: string, name: string, tag: string, token: any }
+    const { folder, name, tag, token } = req.body as { folder: string, name: string, tag: string, token: any }
 
     const configPath = path.join(configDir, `${folder}.json`)
     if (!fs.existsSync(configPath)) return res.status(404).end()
@@ -36,20 +36,20 @@ delRouter.post('/', express.json(), authorizeMiddleware, (req, res) => {
         tagData[name] = tagData[name].filter(t => t !== tag)
         fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2))
     }
-    console.log(`del tag of ${folder}: ${tag}`)
+    console.log(`[DEL] del tag of ${folder} - ${name}: ${tag} IP: ${req.ip} token = ${token}`)
     res.status(200).end()
 })
 
 // 获取 tag
-getRouter.get('/:folder/:key', authorizeMiddleware, (req, res) => {
-    const { folder, key } = req.params;
+getRouter.get('/:folder/:filename', authorizeMiddleware, (req, res) => {
+    const { folder, filename } = req.params;
 
     const configPath = path.join(configDir, `${folder}.json`);
 
     if (!fs.existsSync(configPath)) return res.status(404).send([]);
 
     const tagData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    const tags = tagData[key] || [];
+    const tags = tagData[filename] || [];
     res.json(tags);
 });
 

@@ -1,20 +1,28 @@
 # image-tag-editor-web
 
-适用于于Koishi插件 [koishi-plugin-starfx-bot]((https://github.com/StarFreedomX/starfx-bot)) 的语录功能
+适用于Koishi插件 [koishi-plugin-starfx-bot]((https://github.com/StarFreedomX/starfx-bot)) 的语录功能
 
-# 启动方式
-安装项目及依赖
+# 安装项目
 ```shell
 #克隆本仓库
-git clone https://github.com/StarFreedomX/image-tag-editor-web.git
-cd image-tag-editor-web
+git clone https://github.com/StarFreedomX/image-tag-editor-web.git && cd image-tag-editor-web
 #安装依赖
 npm install
-#进入config.json调整配置
-#运行项目(可能会要求安装npx tsx等，跟随引导安装即可)
+```
+
+# 启动项目
+1. 重命名```config-example.json```为```config.json```并按照本机环境修改相关配置
+2. 运行项目(可能会要求安装tsx等，跟随引导安装即可)
+```shell
 npm start
 ```
 
+
+# 更新项目
+```shell
+# 会保留config.json
+git pull
+```
 
 # config配置
 ```ts

@@ -35,10 +35,14 @@ export interface Config {
     };
 }
 
+// 设置模板引擎
+app.set('view engine', 'ejs');
+// 设置模板文件目录
+app.set('views', resolvePath('./views'));
 
 app.use(bodyParser.json())
 app.use('/', mainPageRouter)
-app.use('/', folderRouter);
+app.use('/groups', folderRouter);
 app.use('/images', getImageRouter)
 app.use('/tag', addTagRouter)
 app.use('/delete-tag', delTagRouter)
@@ -71,4 +75,6 @@ function resolvePath(inputPath: string): string {
 
 app.listen(config.port || 3567, config.ip || '127.0.0.1', () => {
     console.log(`✅ 本地图片标签服务已启动: http://localhost:${config.port}`)
+}).on('error', (err: Error) => {
+    console.error(err)
 })

@@ -5,7 +5,7 @@
   "tagConfigOutputPath": "%AppData%\\Koishi\\Desktop\\data\\instances\\default\\data\\starfx-bot\\assets\\tagConfig",
   "tokens": {
     "admin": {
-      "starfx": "starfx"
+      "adminToken": "adminName"
     }
   }
 }

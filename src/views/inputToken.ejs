@@ -1,0 +1,47 @@
+
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title><%= folder %></title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #121212;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #message {
+            text-align: center;
+        }
+        input, button {
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+
+<div id="message">
+    <h2><%= message %></h2>
+    <label for="token-input"></label><input id="token-input" placeholder="输入 token" />
+    <br />
+    <button onclick="submitToken()">提交</button>
+</div>
+<script>
+    function submitToken() {
+        const token = document.getElementById('token-input').value;
+        if (!token) return alert('请输入 token');
+        const url = new URL(window.location.href);
+        url.searchParams.set('token', token);
+        window.location.href = url.toString();
+    }
+</script>
+</body>
+</html>
