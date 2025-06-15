@@ -1,5 +1,6 @@
 import { authorizeMiddleware } from "@/authorizeMiddleware";
 import express from "express";
+import bodyParser from 'body-parser';
 import path from "path";
 import fs from "fs";
 import { configDir } from "@/app";
@@ -8,7 +9,7 @@ const delRouter = express.Router();
 const getRouter = express.Router();
 
 // 添加 tag
-addRouter.post('/', express.urlencoded({ extended: true }), authorizeMiddleware, (req, res) => {
+addRouter.post('/', bodyParser.urlencoded({ extended: true }), authorizeMiddleware, (req, res) => {
     const { folder, name, tags, token } = req.body as { folder: string, name: string, tags: string, token: any }
     const configPath = path.join(configDir, `${folder}.json`)
     let tagData: Record<string, string[]> = {}
@@ -25,7 +26,7 @@ addRouter.post('/', express.urlencoded({ extended: true }), authorizeMiddleware,
 })
 
 // 删除 tag
-delRouter.post('/', express.json(), authorizeMiddleware, (req, res) => {
+delRouter.post('/', bodyParser.json(), authorizeMiddleware, (req, res) => {
     const { folder, name, tag, token } = req.body as { folder: string, name: string, tag: string, token: any }
 
     const configPath = path.join(configDir, `${folder}.json`)

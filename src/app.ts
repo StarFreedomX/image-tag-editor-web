@@ -74,7 +74,7 @@ function resolvePath(inputPath: string): string {
 
 
 app.listen(config.port || 3567, config.ip || '127.0.0.1', () => {
-    console.log(`✅ 本地图片标签服务已启动: http://localhost:${config.port}`)
+    console.log(`✅ 本地图片标签服务已启动: http://${config.ip || "localhost"}:${config.port}`)
 }).on('error', (err: Error) => {
     console.error(err)
 })
