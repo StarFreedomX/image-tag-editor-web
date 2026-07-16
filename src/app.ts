@@ -91,7 +91,7 @@ app.post('/users/list', async (req, res) => {
     const token = req.body?.token || req.cookies?.starfx_token || '';
     if (getUserRole(token) !== 'owner') return res.status(403).json({ error: '权限不足' });
     try {
-        const resp = await fetch(`${config.botApiUrl}/starfx/api/list-users`, {
+        const resp = await fetch(`${config.botApiUrl}/starfx/api/record/list-users`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'x-secret': config.botApiSecret },
             body: JSON.stringify({ token })
         });
@@ -102,7 +102,7 @@ app.post('/users/set-role', async (req, res) => {
     const token = req.body?.token || req.cookies?.starfx_token || '';
     if (getUserRole(token) !== 'owner') return res.status(403).json({ error: '权限不足' });
     try {
-        const resp = await fetch(`${config.botApiUrl}/starfx/api/set-role`, {
+        const resp = await fetch(`${config.botApiUrl}/starfx/api/record/set-role`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'x-secret': config.botApiSecret },
             body: JSON.stringify({ token, targetQqId: req.body.targetQqId, role: req.body.role })
         });
@@ -113,7 +113,7 @@ app.post('/users/delete', async (req, res) => {
     const token = req.body?.token || req.cookies?.starfx_token || '';
     if (getUserRole(token) !== 'owner') return res.status(403).json({ error: '权限不足' });
     try {
-        const resp = await fetch(`${config.botApiUrl}/starfx/api/delete-user`, {
+        const resp = await fetch(`${config.botApiUrl}/starfx/api/record/delete-user`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'x-secret': config.botApiSecret },
             body: JSON.stringify({ token, targetQqId: req.body.targetQqId })
         });
