@@ -1,13 +1,15 @@
 import fs from "fs";
 import path from "path";
-import express from "express";
-import {imageDir} from "@/app"
-const router = express.Router();
+import { Router } from "express";
+import { imageDir } from "@/app";
+const router: Router = Router();
 
-router.get('/', (req, res) => {
-    const folders = fs.readdirSync(imageDir).filter(f => fs.statSync(path.join(imageDir, f)).isDirectory());
+router.get("/", (req, res) => {
+	const folders = fs
+		.readdirSync(imageDir)
+		.filter((f) => fs.statSync(path.join(imageDir, f)).isDirectory());
 
-    let html = `
+	let html = `
   <html lang="zh">
     <head>
       <title>语录导航</title>
@@ -52,13 +54,13 @@ router.get('/', (req, res) => {
     <body>
       <h1>语录导航</h1>
       <ul>
-        ${folders.map(folder => `<li><a href="/groups/${folder}">${folder}</a></li>`).join('')}
+        ${folders.map((folder) => `<li><a href="/groups/${folder}">${folder}</a></li>`).join("")}
       </ul>
     </body>
   </html>
   `;
 
-    res.send(html);
+	res.send(html);
 });
 
-export { router as mainPageRouter }
+export { router as mainPageRouter };

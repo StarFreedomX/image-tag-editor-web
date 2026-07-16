@@ -1,12 +1,14 @@
-import { authorizeMiddleware } from "@/authorizeMiddleware";
-import express from "express";
+import { authorizeMiddleware, getUserRole, getUserLabel } from "@/authorizeMiddleware";
+import { Router } from "express";
 import bodyParser from 'body-parser';
 import path from "path";
 import fs from "fs";
 import { configDir } from "@/app";
-const addRouter = express.Router();
-const delRouter = express.Router();
-const getRouter = express.Router();
+import { writeAction } from "@/router/opLog";
+
+const addRouter: Router = Router();
+const delRouter: Router = Router();
+const getRouter: Router = Router();
 
 // 添加 tag
 addRouter.post('/', bodyParser.urlencoded({ extended: true }), authorizeMiddleware, (req, res) => {
@@ -21,13 +23,18 @@ addRouter.post('/', bodyParser.urlencoded({ extended: true }), authorizeMiddlewa
     tagData[name] = Array.from(new Set(tagData[name]))
 
     fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2))
-    console.log(`[ADD] add tag of ${folder} - ${name}: ${tags} IP: ${req.ip} token = ${token}`)
+    writeAction(`[添加标签] ${getUserLabel(token)} IP=${req.ip} folder=${folder} image=${name} tags=${tags}`)
     res.status(200).end()
 })
 
-// 删除 tag
+// 删除 tag（admin/owner）
 delRouter.post('/', bodyParser.json(), authorizeMiddleware, (req, res) => {
     const { folder, name, tag, token } = req.body as { folder: string, name: string, tag: string, token: any }
+
+    const role = getUserRole(token);
+    if (role !== 'admin' && role !== 'owner') {
+        return res.status(403).json({ error: '权限不足，仅管理员可删除标签' });
+    }
 
     const configPath = path.join(configDir, `${folder}.json`)
     if (!fs.existsSync(configPath)) return res.status(404).end()
@@ -36,8 +43,8 @@ delRouter.post('/', bodyParser.json(), authorizeMiddleware, (req, res) => {
     if (tagData[name]) {
         tagData[name] = tagData[name].filter(t => t !== tag)
         fs.writeFileSync(configPath, JSON.stringify(tagData, null, 2))
+        writeAction(`[删除标签] ${getUserLabel(token)} IP=${req.ip} folder=${folder} image=${name} tag=${tag}`)
     }
-    console.log(`[DEL] del tag of ${folder} - ${name}: ${tag} IP: ${req.ip} token = ${token}`)
     res.status(200).end()
 })
 

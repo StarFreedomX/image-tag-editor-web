@@ -3,10 +3,6 @@
   "port": 3567,
   "imageFolderPath": "%AppData%\\Koishi\\Desktop\\data\\instances\\default\\data\\starfx-bot\\assets\\record",
   "tagConfigOutputPath": "%AppData%\\Koishi\\Desktop\\data\\instances\\default\\data\\starfx-bot\\assets\\tagConfig",
-  "tokens": {
-    "admin": {
-      "adminToken": "adminName"
-    }
-  }
+  "botApiUrl": "http://localhost:5140",
+  "botApiSecret": "change-me"
 }
-

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e; color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh; padding: 20px;
+        }
+        .container {
+            max-width: 720px; margin: 60px auto;
+            background: #16213e; border-radius: 12px; padding: 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.3);
+        }
+        h1 { font-size: 20px; color: #fff; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 13px; color: #888; padding: 10px 0; border-bottom: 1px solid #333; }
+        td { padding: 12px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        select {
+            background: #0f3460; color: #fff; border: 1px solid #333;
+            border-radius: 4px; padding: 4px 8px; font-size: 13px;
+        }
+        .del-btn {
+            background: transparent; color: #e94560; border: 1px solid #e94560;
+            border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+        }
+        .del-btn:hover { background: rgba(233,69,96,.15); }
+        .msg { font-size: 13px; margin: 12px 0; padding: 8px; border-radius: 6px; }
+        .msg.success { background: rgba(46,204,113,.15); color: #2ecc71; display: none; }
+        .msg.error { background: rgba(233,69,96,.15); color: #e94560; display: none; }
+        #back-button {
+            position: fixed; top: 20px; left: 20px; font-size: 24px;
+            text-decoration: none; background: #222; color: #eee;
+            padding: 6px 12px; border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,.4); z-index: 1000;
+        }
+        #back-button:hover { background: #333; }
+    </style>
+</head>
+<body>
+<a href="javascript:history.back()" id="back-button" title="返回">←</a>
+<div class="container">
+    <h1>用户管理</h1>
+    <div id="msgOk" class="msg success"></div>
+    <div id="msgErr" class="msg error"></div>
+    <table>
+        <thead><tr><th>用户名</th><th>ID</th><th>角色</th><th></th></tr></thead>
+        <tbody id="userList"><tr><td colspan="4" style="color:#666;text-align:center">加载中...</td></tr></tbody>
+    </table>
+</div>
+<script>
+    const token = (document.cookie.match(/(?:^|;\s*)starfx_token=([^;]*)/) || [])[1] || '';
+    let currentQqId = '';
+
+    async function api(path, body) {
+        const resp = await fetch(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, ...body })
+        });
+        return resp.json();
+    }
+
+    function showMsg(ok, text) {
+        const el = ok ? document.getElementById('msgOk') : document.getElementById('msgErr');
+        el.textContent = text; el.style.display = ''; setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function loadUsers() {
+        const data = await api('/users/list');
+        const tbody = document.getElementById('userList');
+        if (!data.success) { tbody.innerHTML = '<tr><td colspan="4" style="color:#e94560;text-align:center">' + (data.message || '加载失败') + '</td></tr>'; return; }
+        currentQqId = data.selfQqId || '';
+        tbody.innerHTML = data.users.map(u => {
+            const isSelf = u.qqId === currentQqId;
+            const isOwner = u.role === 'owner';
+            return `
+            <tr>
+                <td>${u.username}${isSelf ? ' <span style="color:#e94560;font-size:12px">(你)</span>' : ''}</td>
+                <td><code style="color:#aaa">${u.qqId}</code></td>
+                <td>
+                    <select onchange="setRole('${u.qqId}', this.value)" ${isSelf ? 'disabled' : ''}>
+                        <option value="user" ${u.role==='user'?'selected':''}>user</option>
+                        <option value="admin" ${u.role==='admin'?'selected':''}>admin</option>
+                        ${u.role === 'owner' ? '<option selected disabled>owner</option>' : ''}
+                    </select>
+                </td>
+                <td><button class="del-btn" onclick="deleteUser('${u.qqId}')" ${isSelf || isOwner ? 'disabled style="opacity:.3;cursor:not-allowed"' : ''}>删除</button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function setRole(qqId, role) {
+        const data = await api('/users/set-role', { targetQqId: qqId, role });
+        showMsg(data.success, data.message);
+        if (data.success) loadUsers();
+    }
+
+    async function deleteUser(qqId) {
+        if (!confirm('确定删除该用户？')) return;
+        const data = await api('/users/delete', { targetQqId: qqId });
+        showMsg(data.success, data.message);
+        if (data.success) loadUsers();
+    }
+
+    loadUsers();
+</script>
+</body>
+</html>

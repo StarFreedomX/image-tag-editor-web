@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作日志</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 60px auto;
+            background: #16213e;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.3);
+        }
+        h1 { font-size: 20px; color: #fff; margin-bottom: 16px; }
+        pre {
+            background: #0d1b36;
+            border-radius: 6px;
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #aaa;
+            min-height: 60px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .pager {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin-top: 16px;
+        }
+        .pager button {
+            background: #0f3460; color: #ccc; border: 1px solid #333;
+            border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer;
+        }
+        .pager button:hover { background: #1a4478; }
+        .pager button:disabled { opacity: .3; cursor: not-allowed; }
+        .pager span { font-size: 13px; color: #888; }
+        #back-button {
+            position: fixed; top: 20px; left: 20px; font-size: 24px;
+            text-decoration: none; background: #222; color: #eee;
+            padding: 6px 12px; border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,.4); z-index: 1000;
+            transition: background .2s;
+        }
+        #back-button:hover { background: #333; }
+    </style>
+</head>
+<body>
+<a href="javascript:history.back()" id="back-button" title="返回">←</a>
+<div class="container">
+    <h1>语录操作日志（最近7天）</h1>
+    <pre id="logContent">加载中...</pre>
+    <div class="pager" id="pager" style="display:none">
+        <button id="prevBtn" onclick="goPage(-1)">上一页</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" onclick="goPage(1)">下一页</button>
+    </div>
+</div>
+<script>
+    const PAGE_SIZE = 50;
+    let allLines = [];
+    let page = 0;
+
+    async function loadLogs() {
+        try {
+            const resp = await fetch('/logs/data');
+            const data = await resp.json();
+            allLines = JSON.parse(data.logs);
+            page = 0;
+            render();
+            if (data.pages > 1) document.getElementById('pager').style.display = '';
+        } catch {
+            document.getElementById('logContent').textContent = '加载失败';
+        }
+    }
+
+    function render() {
+        const start = page * PAGE_SIZE;
+        const slice = allLines.slice(start, start + PAGE_SIZE);
+        document.getElementById('logContent').textContent = slice.join('\n') || '暂无日志';
+        document.getElementById('pageInfo').textContent = `${page + 1} / ${Math.ceil(allLines.length / PAGE_SIZE)}`;
+        document.getElementById('prevBtn').disabled = page === 0;
+        document.getElementById('nextBtn').disabled = start + PAGE_SIZE >= allLines.length;
+    }
+
+    function goPage(delta) {
+        page = Math.max(0, Math.min(Math.ceil(allLines.length / PAGE_SIZE) - 1, page + delta));
+        render();
+    }
+
+    loadLogs();
+</script>
+</body>
+</html>

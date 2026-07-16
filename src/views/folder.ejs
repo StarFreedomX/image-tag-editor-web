@@ -163,10 +163,17 @@
             padding: 5px 10px;
         }
     }
+    .del-img-btn {
+        background: rgba(233,69,96,.15); color: #e94560;
+        border: 1px solid #e94560; border-radius: 4px;
+        padding: 4px 10px; font-size: 12px; cursor: pointer;
+        margin-top: 6px;
+    }
+    .del-img-btn:hover { background: rgba(233,69,96,.3); }
 </style>
 </head>
 <body>
-<a href="/" id="back-button" title="返回主页">←</a>
+<a href="javascript:history.back()" id="back-button" title="返回">←</a>
 <div id="img-modal" class="modal">
     <div class="modal-content">
         <img id="modal-image" src="" alt=""/>
@@ -179,15 +186,15 @@
     <% images.forEach(({imgSrc, fileName, tags}) => { %>
         <div class="img-block" id="img-<%= folder %>-<%= fileName %>">
             <img
-                    src="<%= imgSrc %>?token=<%= token %>"
+                    src="<%= imgSrc %>"
                     loading="lazy"
-                    onclick="openModal('<%= imgSrc %>?token=<%= token %>', '<%= folder %>', '<%= fileName %>')"
+                    onclick="openModal('<%= imgSrc %>', '<%= folder %>', '<%= fileName %>')"
                     alt="<%= folder %>-<%= fileName %>"
             />
             <div class="tags" id="tags-<%= folder %>-<%= fileName %>">
                 <% tags.forEach(tag => { %>
-                    <span class="tag" onclick="deleteTag('<%= folder %>', '<%= fileName %>', '<%= tag %>')">
-          <%= tag %> ✕
+                    <span class="tag">
+          <%= tag %><% if (role === 'admin' || role === 'owner') { %> <span style="cursor:pointer" onclick="deleteTag('<%= folder %>', '<%= fileName %>', '<%= tag %>')">✕</span><% } %>
         </span>
                 <% }) %>
             </div>
@@ -199,18 +206,23 @@
                 </label>
                 <button type="submit">添加标签</button>
             </form>
+            <% if (role === 'admin' || role === 'owner') { %>
+            <button class="del-img-btn" onclick="deleteImage('<%= folder %>', '<%= fileName %>')">🗑 删除</button>
+            <% } %>
         </div>
     <% }) %>
 </div>
 <script>
-    async function deleteTag(folder, name, tag) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
+    function getToken() {
+        const m = document.cookie.match(/(?:^|;\s*)starfx_token=([^;]*)/);
+        return m ? decodeURIComponent(m[1]) : '';
+    }
 
+    async function deleteTag(folder, name, tag) {
         await fetch('/delete-tag', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({folder, name, tag, token})
+            body: JSON.stringify({folder, name, tag, token: getToken()})
         })
         //location.reload()
         updateTags(folder, name)
@@ -223,12 +235,11 @@
         const tags = input?.value.trim()
 
         if (!tags) return false  // 空值不提交
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
         const params = new URLSearchParams(formData);
 
         // 添加 token 参数
-        if (token) params.append('token', token);
+        const t = getToken();
+        if (t) params.append('token', t);
 
         fetch('/tag', {
             method: 'POST',
@@ -249,10 +260,8 @@
         console.log(tagContainer);
         if (!tagContainer) return;
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        // 发起请求获取最新的标签数据
-        fetch(`/tags/${folder}/${key}?token=${token}`)
+        const t = getToken();
+        fetch(`/tags/${folder}/${key}?token=${t}`)
             .then(res => res.json())
             .then(tags => {
 
@@ -290,6 +299,25 @@
     modalContent.addEventListener('click', (e) => {
         e.stopPropagation();
     });
+
+    async function deleteImage(folder, filename) {
+        if (!confirm('确定删除该语录图片？此操作不可恢复。')) return;
+        try {
+            const resp = await fetch('/images/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folder, filename, token: getToken() })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || '删除失败');
+            }
+        } catch {
+            alert('网络错误');
+        }
+    }
 
 </script>
 </body>

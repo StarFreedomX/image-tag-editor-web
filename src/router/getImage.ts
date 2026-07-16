@@ -2,8 +2,8 @@ import { authorizeMiddleware } from "@/authorizeMiddleware";
 import path from "path";
 import fs from "fs";
 import {imageDir} from "@/app";
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
+const router: Router = Router();
 router.get('/:folder/:filename', authorizeMiddleware, (req, res) => {
     const { folder, filename } = req.params;
     const imagePath = path.join(imageDir, folder, filename);

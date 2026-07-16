@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 语录管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.3);
+            text-align: center;
+        }
+        h1 { font-size: 48px; color: #e94560; margin-bottom: 8px; }
+        p { font-size: 15px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+        a { color: #e94560; text-decoration: none; font-size: 14px; }
+        a:hover { text-decoration: underline; }
+        #back-button {
+            position: fixed; top: 20px; left: 20px; font-size: 24px;
+            text-decoration: none; background: #222; color: #eee;
+            padding: 6px 12px; border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,.4); z-index: 1000;
+            transition: background .2s;
+        }
+        #back-button:hover { background: #333; }
+    </style>
+</head>
+<body>
+<a href="javascript:history.back()" id="back-button" title="返回">←</a>
+<div class="container">
+    <h1>404</h1>
+    <p>
+        <%= message %><br>
+        该群可能不存在语录，或尚未被添加到你的访问列表中。
+    </p>
+    <a href="/manage">返回管理面板</a>
+</div>
+</body>
+</html>

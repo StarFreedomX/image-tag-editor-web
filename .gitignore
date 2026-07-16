@@ -1,5 +1,7 @@
-./node_modules
-./.idea
-./package-lock.json
-./tsconfig.tsbuildinfo
-./config.json
+node_modules
+.idea
+package-lock.json
+tsconfig.tsbuildinfo
+config.json
+pnpm-lock.yaml
+/lib/

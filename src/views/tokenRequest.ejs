@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>获取 Token</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.3);
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .sub {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 28px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #aaa;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #0f3460;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border .2s;
+        }
+        input:focus { border-color: #e94560; }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #e94560;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        button:hover { background: #d63851; }
+        button:disabled { background: #555; cursor: not-allowed; }
+
+        .step { display: none; }
+        .step.active { display: block; }
+
+        .code-box {
+            background: #0f3460;
+            border: 2px dashed #e94560;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .code-full { font-size: 28px; letter-spacing: 4px; color: #e94560; font-weight: bold; }
+        .code-prefix { font-size: 16px; color: #aaa; margin-top: 8px; }
+        .hint { 
+            font-size: 14px; color: #ccc; margin: 12px 0; 
+            background: rgba(233,69,96,.1); 
+            padding: 10px 14px; 
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+        .hint code {
+            background: rgba(233,69,96,.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e94560;
+        }
+        .copy-cmd {
+            display: inline; margin-left: 8px; padding: 1px 6px; font-size: 11px;
+            background: rgba(233,69,96,.15); color: #e94560;
+            border: 1px solid #e94560; border-radius: 3px; cursor: pointer;
+            vertical-align: middle;
+        }
+        .copy-cmd:hover { background: rgba(233,69,96,.3); }
+
+        .polling { 
+            text-align: center; 
+            margin-top: 16px; 
+            color: #888; 
+            font-size: 13px;
+        }
+        .polling .dot::after {
+            animation: dots 1.5s steps(4,end) infinite;
+            content: "";
+        }
+        @keyframes dots {
+            0% { content: ""; }
+            25% { content: "."; }
+            50% { content: ".."; }
+            75% { content: "..."; }
+        }
+
+        .error { color: #e94560; font-size: 13px; margin-top: 8px; }
+        .timeout { color: #f0a030; font-size: 13px; margin-top: 8px; text-align: center; }
+        #back-button {
+            position: fixed; top: 20px; left: 20px; font-size: 24px;
+            text-decoration: none; background: #222; color: #eee;
+            padding: 6px 12px; border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,.4); z-index: 1000;
+            transition: background .2s;
+        }
+        #back-button:hover { background: #333; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="javascript:history.back()" id="back-button" title="返回">←</a>
+    <h1>语录管理 Token</h1>
+    <p class="sub" id="pageSub">绑定你的 QQ 号以管理群语录</p>
+
+    <!-- 步骤 1：输入 QQ 号 -->
+    <div id="step1" class="step active">
+        <form id="qqForm">
+            <label for="qqInput">QQ 号</label>
+            <input id="qqInput" type="text" placeholder="输入你的 QQ 号" autocomplete="off">
+            <div id="step1Error" class="error"></div>
+            <button id="step1Btn" type="submit">获取验证码</button>
+        </form>
+    </div>
+
+    <!-- 步骤 2：验证码 & 轮询 -->
+    <div id="step2" class="step">
+        <div class="code-box">
+            <div class="code-full" id="fullCodeDisplay"></div>
+            <div class="code-prefix">将此验证码发送给机器人</div>
+        </div>
+        <div class="hint">
+            请向机器人发送<br>
+            <code id="cmdDisplay">语录.验证</code>
+            <span class="copy-cmd" id="copyCmdBtn" onclick="copyCmd()" style="display:none">复制</span>
+        </div>
+        <div class="polling" id="pollText">
+            等待验证中<span class="dot"></span>
+        </div>
+        <div id="pollTimeout" class="timeout" style="display:none">
+            验证超时，请刷新页面重新获取
+        </div>
+        <button onclick="location.reload()" style="margin-top:8px;background:#444">重新获取</button>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+    }
+    // 已有 token 直接跳管理页
+    if (getCookie('starfx_token')?.startsWith('sfx_')) {
+        window.location.href = '/manage';
+    }
+
+    const mode = new URLSearchParams(window.location.search).get('mode') === 'reset' ? 'reset' : 'login';
+    if (mode === 'reset') document.getElementById('pageSub').textContent = '重新生成 Token（旧 Token 将失效）';
+
+    document.getElementById('qqForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        requestCode();
+    });
+
+    let pollTimer = null;
+    let pollStart = 0;
+    const POLL_INTERVAL = 3000;
+    const POLL_TIMEOUT = 130000; // 2分钟多加一点余量
+
+    async function requestCode() {
+        const qqId = document.getElementById('qqInput').value.trim();
+        const errEl = document.getElementById('step1Error');
+        if (!qqId) { errEl.textContent = '请输入 QQ 号'; return; }
+        if (!/^\d+$/.test(qqId)) { errEl.textContent = 'QQ 号应为纯数字'; return; }
+
+        errEl.textContent = '';
+        const btn = document.getElementById('step1Btn');
+        btn.disabled = true;
+        btn.textContent = '请求中...';
+
+        try {
+            const resp = await fetch('/get-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qqId, mode })
+            });
+            const data = await resp.json();
+            if (data.error) {
+                errEl.textContent = data.error;
+                btn.disabled = false;
+                btn.textContent = '获取验证码';
+                return;
+            }
+            showStep2(data.fullCode);
+        } catch {
+            errEl.textContent = '网络错误，请重试';
+            btn.disabled = false;
+            btn.textContent = '获取验证码';
+        }
+    }
+
+    function showStep2(fullCode) {
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        const prefix = fullCode.substring(0, 6);
+        document.getElementById('fullCodeDisplay').textContent = prefix;
+        document.getElementById('cmdDisplay').textContent = '语录.验证 ' + prefix;
+        document.getElementById('copyCmdBtn').style.display = '';
+
+        pollStart = Date.now();
+        startPolling(fullCode);
+    }
+
+    function copyCmd() {
+        const text = document.getElementById('cmdDisplay').textContent;
+        navigator.clipboard?.writeText(text);
+        const btn = document.getElementById('copyCmdBtn');
+        btn.textContent = '已复制';
+        setTimeout(() => btn.textContent = '复制', 1500);
+    }
+
+    function startPolling(fullCode) {
+        pollTimer = setInterval(async () => {
+            if (Date.now() - pollStart > POLL_TIMEOUT) {
+                stopPolling();
+                document.getElementById('pollText').style.display = 'none';
+                document.getElementById('pollTimeout').style.display = '';
+                return;
+            }
+            try {
+                const resp = await fetch('/get-token/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullCode })
+                });
+                const data = await resp.json();
+                if (data.verified && data.token) {
+                    stopPolling();
+                    document.cookie = 'starfx_token=' + data.token + ';path=/;max-age=86400;SameSite=Lax';
+                    window.location.href = '/manage';
+                }
+            } catch { /* 网络抖动，继续轮询 */ }
+        }, POLL_INTERVAL);
+    }
+
+    function stopPolling() {
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语录管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.3);
+        }
+        h1 { font-size: 22px; margin-bottom: 24px; color: #fff; text-align: center; }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #0f3460;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            font-family: monospace;
+        }
+        input:focus { border-color: #e94560; }
+        button, .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-primary { background: #e94560; color: #fff; }
+        .btn-primary:hover { background: #d63851; }
+        .btn-secondary { background: #0f3460; color: #ccc; border: 1px solid #333; }
+        .btn-secondary:hover { background: #1a4478; }
+
+        .msg { font-size: 13px; margin-top: 8px; padding: 8px; border-radius: 6px; }
+        .msg.error { background: rgba(233,69,96,.15); color: #e94560; }
+        .msg.hidden { display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>语录管理</h1>
+
+    <% if (typeof error === 'string' && error) { %>
+        <div class="msg error" style="display:block"><%= error %></div>
+    <% } %>
+
+    <form id="loginForm">
+        <input id="tokenInput" type="password" placeholder="粘贴已有 Token" autocomplete="off">
+        <button class="btn-primary" type="submit">登录</button>
+    </form>
+    <div id="loginMsg" class="msg error hidden"></div>
+
+    <a href="/get-token" class="btn btn-secondary">验证码登录</a>
+    <a href="/get-token?mode=reset" class="btn btn-secondary">重置 Token</a>
+</div>
+
+<script>
+    function getCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+    }
+    if (getCookie('starfx_token')?.startsWith('sfx_')) {
+        window.location.href = '/manage';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('loginMsg');
+        msg.classList.add('hidden');
+        const token = document.getElementById('tokenInput').value.trim();
+        if (!token) { msg.textContent = '请输入 Token'; msg.classList.remove('hidden'); return; }
+        if (!token.startsWith('sfx_')) { msg.textContent = 'Token 格式无效'; msg.classList.remove('hidden'); return; }
+        try {
+            const resp = await fetch('/manage/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await resp.json();
+            if (!data.valid) { msg.textContent = data.error || 'Token 无效'; msg.classList.remove('hidden'); return; }
+        } catch { msg.textContent = '网络错误'; msg.classList.remove('hidden'); return; }
+        document.cookie = 'starfx_token=' + token + ';path=/;max-age=86400;SameSite=Lax';
+        window.location.href = '/manage';
+    });
+</script>
+</body>
+</html>
