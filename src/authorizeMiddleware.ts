@@ -11,6 +11,11 @@ export const authorizeMiddleware = (req: Request, res: Response, next: NextFunct
         return res.status(403).json({ error: '无效或缺失的 token' });
     }
 
+    // 每次验证通过续期1年
+    if (cookieToken) {
+        res.cookie('starfx_token', cookieToken, { maxAge: 31536000000, path: '/', sameSite: 'lax' });
+    }
+
     next();
 };
 

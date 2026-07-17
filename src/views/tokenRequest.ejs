@@ -258,7 +258,7 @@
                 const data = await resp.json();
                 if (data.verified && data.token) {
                     stopPolling();
-                    document.cookie = 'starfx_token=' + data.token + ';path=/;max-age=86400;SameSite=Lax';
+                    document.cookie = 'starfx_token=' + data.token + ';path=/;max-age=31536000;SameSite=Lax';
                     window.location.href = '/manage';
                 }
             } catch { /* 网络抖动，继续轮询 */ }
